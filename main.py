@@ -41,6 +41,10 @@ class MobileParser:
         self.email = None
         self.site = None
         self.host = None
+        self.count_offer = None
+        self.automarks = None
+        self.dealer_status = None
+        self.qualifications = None
 
     def get_regions(self):
         r = requests.get(self.URL_REGION, headers=self.HEADERS)
@@ -63,20 +67,24 @@ class MobileParser:
         for dealer in dealers:
             info = dealer.select('.dealer')
             href = info[0].select_one('a')['href']
+            if 'http://home.mobile.de/' not in href:
+                continue
             self.ort = info[2].text.split(' ', maxsplit=1)[1]
+            if len(info) > 3:
+                self.qualifications = info[3].text.replace('\n', '').split(',')
+            print(self.qualifications)
             self.get_dealer_contact(href)
 
     def get_dealer_contact(self, url):
         if 'http://home.mobile.de/' not in url:
             return
-        print('********* ' + url)
-        r = requests.get(url, headers=self.HEADERS)
+        r = requests.get(url, headers=self.HEADERS, timeout=100)
         soup = BS(r.text, 'lxml')
         id = soup.select_one('.de').select('var')[0].text
         self.JSON_HEADERS['Referer'] = url
         timer = int(time.time()*1000)
-        json_url = f'https://home.mobile.de/home/contact.html?customerId={id}&adId=0&json=true&_={timer}'
-        r = requests.get(json_url, headers=self.JSON_HEADERS)
+        contact_url = f'https://home.mobile.de/home/contact.html?customerId={id}&adId=0&json=true&_={timer}'
+        r = requests.get(contact_url, headers=self.JSON_HEADERS)
         resp = r.json()
         self.firma = resp['contactPage']['contactData']['companyName']['value']
         self.street = resp['contactPage']['contactData']['streetAndHouseNumber']['value']
@@ -86,11 +94,16 @@ class MobileParser:
         self.phone = resp['contactPage']['contactData']['phonumber']['number']
         if 'value' in resp['contactPage']['contactData']['faxNumber']:
             self.fax = resp['contactPage']['contactData']['faxNumber']['value']
+        if 'value' in resp['contactPage']['userDefinedLink']:
+            self.site = resp['contactPage']['userDefinedLink']['value']
+            self.host = self.site.replace('http://www.','')
+        if 'value' in resp['contactPage']['dealerStatus']:
+            self.dealer_status = resp['contactPage']['dealerStatus']['value']
         #print(self.firma, self.street, self.phone)
         headers = self.JSON_HEADERS
         timer = int(time.time() * 1000)
-        dop_url = f'https://home.mobile.de/home/imprint.html?noHeader=true&customerId={id}&json=false&_={timer}'
-        r = requests.get(dop_url, headers=headers)
+        imprint_url = f'https://home.mobile.de/home/imprint.html?noHeader=true&customerId={id}&json=false&_={timer}'
+        r = requests.get(imprint_url, headers=headers)
         soup = BS(r.text, 'lxml')
         splited_data = soup.text.split('\n')
         #print(splited_data)
@@ -102,17 +115,30 @@ class MobileParser:
                 else:
                     self.email = el
                 break
-        for el in splited_data:
-            if 'www' in el:
-                splited_el = el.split(' ')
-                if len(splited_el) > 1:
-                    for _el in splited_el:
-                        if 'www' in _el:
-                            self.site = _el
-                else:
-                    self.site = el
-                self.host = self.site.replace('www.','')
-        print(self.site)
+        timer = int(time.time() * 1000)
+        ses_url = f'https://home.mobile.de/home/ses.html?customerId={id}&json=true&_={timer}'
+        r = requests.get(ses_url, headers=headers)
+        resp = r.json()
+        self.count_offer = resp['searchMetadata']['totalResults']
+        self.automarks = [el['value'] for el in resp['searchReferenceData']['makes'] if el['key']]
+        # timer = int(time.time() * 1000)
+        # url_about = f'https://home.mobile.de/home/about.html?noHeader=true&customerId={id}&json=false&_={timer}'
+        # r = requests.get(url_about, headers=headers)
+        # soup = BS(r.text, 'lxml')
+        # print(soup.select_one('.row-fluid.about').text)
+
+
+        # for el in splited_data:
+        #     if 'www' in el:
+        #         splited_el = el.split(' ')
+        #         if len(splited_el) > 1:
+        #             for _el in splited_el:
+        #                 if 'www' in _el:
+        #                     self.site = _el
+        #         else:
+        #             self.site = el
+        #         self.host = self.site.replace('www.','')
+        # print(self.site)
 
     def get_dialers(self, url):
         r = requests.get(url, headers=self.HEADERS)
