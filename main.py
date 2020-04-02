@@ -1,6 +1,8 @@
 import requests
 from bs4 import BeautifulSoup as BS
 import time
+import xlwt
+import xlrd
 
 
 class MobileParser:
@@ -45,6 +47,83 @@ class MobileParser:
         self.automarks = None
         self.dealer_status = None
         self.qualifications = None
+        self.file_name = 'data.xls'
+        self.create_xls_file()
+
+
+    def create_xls_file(self):
+        wb = xlwt.Workbook()
+        ws = wb.add_sheet('sheet')
+        for i in range(0, 21):
+            ws.col(i).width = 6000
+        ws.col(0).width = 3000
+        ws.col(3).width = 3000
+        ws.write(0, 0, 'Source')
+        ws.write(0, 1, 'Company')
+        ws.write(0, 2, 'Street')
+        ws.write(0, 3, 'Postcode')
+        ws.write(0, 4, 'Place')
+        ws.write(0, 5, 'State')
+        ws.write(0, 6, 'Country')
+        ws.write(0, 7, 'Telephone_1')
+        ws.write(0, 8, 'Telephone_2')
+        ws.write(0, 9, 'Telephone_3')
+        ws.write(0, 10, 'Fax')
+        ws.write(0, 11, 'EMail')
+        ws.write(0, 12, 'Website')
+        ws.write(0, 13, 'Host')
+        ws.write(0, 14, 'Car brands')
+        ws.write(0, 15, 'Number of offers')
+        ws.write(0, 16, 'Description')
+        ws.write(0, 17, 'Qualification_1')
+        ws.write(0, 18, 'Qualification_2')
+        ws.write(0, 19, 'Qualification_3')
+        ws.write(0, 20, 'Qualification_4')
+        while True:
+            try:
+                wb.save(self.file_name)
+                break
+            except PermissionError:
+                print('[ОШИБКА] Закройте Excel файл')
+                time.sleep(1)
+
+    def save_file(self):
+        rb = xlrd.open_workbook(self.file_name)
+        wb = xlwt.Workbook()
+        ws = wb.add_sheet('sheet')
+        for i in range(0, 21):
+            ws.col(i).width = 6000
+        sheet = rb.sheet_by_index(0)
+        rows = sheet.nrows
+        for rownum in range(rows):
+            row = sheet.row_values(rownum)
+            for colnum in range(len(row)):
+                ws.write(rownum, colnum, row[colnum])
+        ws.write(rows, 0, self.qualle)
+        ws.write(rows, 1, self.firma)
+        ws.write(rows, 2, self.street)
+        ws.write(rows, 3, self.plz)
+        ws.write(rows, 4, self.ort)
+        ws.write(rows, 5, self.bundesland)
+        ws.write(rows, 6, self.land)
+        for i in range(len(self.phone)):
+            ws.write(rows, 7+i, self.phone[i])
+        ws.write(rows, 10, self.fax)
+        ws.write(rows, 11, self.email)
+        ws.write(rows, 12, self.site)
+        ws.write(rows, 13, self.host)
+        ws.write(rows, 14, self.automarks)
+        ws.write(rows, 15, self.count_offer)
+        ws.write(rows, 16, self.dealer_status)
+        for i in range(len(self.qualifications)):
+            ws.write(rows, 17+i, self.qualifications[i])
+        while True:
+            try:
+                wb.save(self.file_name)
+                break
+            except PermissionError:
+                print('[ОШИБКА] Закройте Excel файл')
+                time.sleep(1)
 
     def get_regions(self):
         r = requests.get(self.URL_REGION, headers=self.HEADERS)
@@ -69,10 +148,11 @@ class MobileParser:
             href = info[0].select_one('a')['href']
             if 'http://home.mobile.de/' not in href:
                 continue
+            self.ort = None
             self.ort = info[2].text.split(' ', maxsplit=1)[1]
+            self.qualifications = []
             if len(info) > 3:
                 self.qualifications = info[3].text.replace('\n', '').split(',')
-            print(self.qualifications)
             self.get_dealer_contact(href)
 
     def get_dealer_contact(self, url):
@@ -91,14 +171,21 @@ class MobileParser:
         self.plz = resp['contactPage']['contactData']['zipcodeAndCity']['value'].split(' ')[0]
         self.ort = resp['contactPage']['contactData']['zipcodeAndCity']['value'].split(' ', maxsplit=1)[1]
         self.land = resp['contactPage']['contactData']['country']['value']
-        self.phone = resp['contactPage']['contactData']['phonumber']['number']
+        self.phone = [el['value'] for el in resp['contactPage']['contactData']['phoneNumbers']]
         if 'value' in resp['contactPage']['contactData']['faxNumber']:
             self.fax = resp['contactPage']['contactData']['faxNumber']['value']
+        else:
+            self.fax = None
         if 'value' in resp['contactPage']['userDefinedLink']:
             self.site = resp['contactPage']['userDefinedLink']['value']
             self.host = self.site.replace('http://www.','')
+        else:
+            self.site = None
+            self.host = None
         if 'value' in resp['contactPage']['dealerStatus']:
             self.dealer_status = resp['contactPage']['dealerStatus']['value']
+        else:
+            self.dealer_status = None
         #print(self.firma, self.street, self.phone)
         headers = self.JSON_HEADERS
         timer = int(time.time() * 1000)
@@ -107,6 +194,7 @@ class MobileParser:
         soup = BS(r.text, 'lxml')
         splited_data = soup.text.split('\n')
         #print(splited_data)
+        self.email = None
         for el in splited_data:
             if '@' in el:
                 splited_el = el.split(' ')
@@ -121,6 +209,8 @@ class MobileParser:
         resp = r.json()
         self.count_offer = resp['searchMetadata']['totalResults']
         self.automarks = [el['value'] for el in resp['searchReferenceData']['makes'] if el['key']]
+        self.save_file()
+        print(self.firma)
         # timer = int(time.time() * 1000)
         # url_about = f'https://home.mobile.de/home/about.html?noHeader=true&customerId={id}&json=false&_={timer}'
         # r = requests.get(url_about, headers=headers)
@@ -155,6 +245,8 @@ class MobileParser:
         for region in regions:
             self.bundesland = region['title']
             self.get_dialers(region['href'])
+
+
 
 
 if __name__ == '__main__':
