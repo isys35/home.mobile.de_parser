@@ -126,7 +126,12 @@ class MobileParser:
                 time.sleep(1)
 
     def get_regions(self):
-        r = requests.get(self.URL_REGION, headers=self.HEADERS)
+        while True:
+            try:
+                r = requests.get(self.URL_REGION, headers=self.HEADERS)
+                break
+            except Exception as ex:
+                print(ex)
         soup = BS(r.text, 'lxml')
         regions = soup.select('area')
         regions_data = []
@@ -160,7 +165,7 @@ class MobileParser:
             return
         while True:
             try:
-                r = requests.get(url, headers=self.HEADERS, timeout=100)
+                r = requests.get(url, headers=self.HEADERS)
                 break
             except Exception as ex:
                 print(ex)
@@ -169,10 +174,10 @@ class MobileParser:
             return
         id = soup.select_one('.de').select('var')[0].text
         self.JSON_HEADERS['Referer'] = url
-        timer = int(time.time()*1000)
-        contact_url = f'https://home.mobile.de/home/contact.html?customerId={id}&adId=0&json=true&_={timer}'
         while True:
             try:
+                timer = int(time.time() * 1000)
+                contact_url = f'https://home.mobile.de/home/contact.html?customerId={id}&adId=0&json=true&_={timer}'
                 r = requests.get(contact_url, headers=self.JSON_HEADERS)
                 break
             except Exception as ex:
@@ -200,10 +205,10 @@ class MobileParser:
             self.dealer_status = None
         #print(self.firma, self.street, self.phone)
         headers = self.JSON_HEADERS
-        timer = int(time.time() * 1000)
-        imprint_url = f'https://home.mobile.de/home/imprint.html?noHeader=true&customerId={id}&json=false&_={timer}'
         while True:
             try:
+                timer = int(time.time() * 1000)
+                imprint_url = f'https://home.mobile.de/home/imprint.html?noHeader=true&customerId={id}&json=false&_={timer}'
                 r = requests.get(imprint_url, headers=headers)
                 break
             except Exception as ex:
@@ -220,10 +225,10 @@ class MobileParser:
                 else:
                     self.email = el
                 break
-        timer = int(time.time() * 1000)
-        ses_url = f'https://home.mobile.de/home/ses.html?customerId={id}&json=true&_={timer}'
         while True:
             try:
+                timer = int(time.time() * 1000)
+                ses_url = f'https://home.mobile.de/home/ses.html?customerId={id}&json=true&_={timer}'
                 r = requests.get(ses_url, headers=headers)
                 break
             except Exception as ex:
