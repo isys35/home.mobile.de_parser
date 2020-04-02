@@ -158,13 +158,25 @@ class MobileParser:
     def get_dealer_contact(self, url):
         if 'http://home.mobile.de/' not in url:
             return
-        r = requests.get(url, headers=self.HEADERS, timeout=100)
+        while True:
+            try:
+                r = requests.get(url, headers=self.HEADERS, timeout=100)
+                break
+            except Exception as ex:
+                print(ex)
         soup = BS(r.text, 'lxml')
+        if not soup.select_one('.de'):
+            return
         id = soup.select_one('.de').select('var')[0].text
         self.JSON_HEADERS['Referer'] = url
         timer = int(time.time()*1000)
         contact_url = f'https://home.mobile.de/home/contact.html?customerId={id}&adId=0&json=true&_={timer}'
-        r = requests.get(contact_url, headers=self.JSON_HEADERS)
+        while True:
+            try:
+                r = requests.get(contact_url, headers=self.JSON_HEADERS)
+                break
+            except Exception as ex:
+                print(ex)
         resp = r.json()
         self.firma = resp['contactPage']['contactData']['companyName']['value']
         self.street = resp['contactPage']['contactData']['streetAndHouseNumber']['value']
@@ -190,7 +202,12 @@ class MobileParser:
         headers = self.JSON_HEADERS
         timer = int(time.time() * 1000)
         imprint_url = f'https://home.mobile.de/home/imprint.html?noHeader=true&customerId={id}&json=false&_={timer}'
-        r = requests.get(imprint_url, headers=headers)
+        while True:
+            try:
+                r = requests.get(imprint_url, headers=headers)
+                break
+            except Exception as ex:
+                print(ex)
         soup = BS(r.text, 'lxml')
         splited_data = soup.text.split('\n')
         #print(splited_data)
@@ -205,7 +222,12 @@ class MobileParser:
                 break
         timer = int(time.time() * 1000)
         ses_url = f'https://home.mobile.de/home/ses.html?customerId={id}&json=true&_={timer}'
-        r = requests.get(ses_url, headers=headers)
+        while True:
+            try:
+                r = requests.get(ses_url, headers=headers)
+                break
+            except Exception as ex:
+                print(ex)
         resp = r.json()
         self.count_offer = resp['searchMetadata']['totalResults']
         self.automarks = [el['value'] for el in resp['searchReferenceData']['makes'] if el['key']]
@@ -230,8 +252,14 @@ class MobileParser:
         #         self.host = self.site.replace('www.','')
         # print(self.site)
 
+
     def get_dialers(self, url):
-        r = requests.get(url, headers=self.HEADERS)
+        while True:
+            try:
+                r = requests.get(url, headers=self.HEADERS)
+                break
+            except Exception as ex:
+                print(ex)
         soup = BS(r.text, 'lxml')
         pages = self.get_pages(soup)
         self.get_dealers_info(soup)
