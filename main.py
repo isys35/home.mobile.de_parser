@@ -311,4 +311,8 @@ class MobileParser:
 
 if __name__ == '__main__':
     parser = MobileParser()
-    parser.parsing()
+    try:
+        while True:
+            parser.parsing()
+    except Exception as ex:
+        print(ex)
