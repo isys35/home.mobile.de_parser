@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup as BS
 import time
 import xlwt
 import xlrd
+import os
 
 
 class MobileParser:
@@ -47,8 +48,20 @@ class MobileParser:
         self.automarks = None
         self.dealer_status = None
         self.qualifications = None
+        self.href = None
         self.file_name = 'data.xls'
-        self.create_xls_file()
+        if self.file_name not in os.listdir('.'):
+            self.create_xls_file()
+        self.parsed_hrefs = self.load_hrefs()
+
+    def load_hrefs(self):
+        try:
+            with open('save_file', 'r') as save_file:
+                hrefs = save_file.read()
+        except FileNotFoundError:
+            hrefs = '[]'
+        print(hrefs)
+        return eval(hrefs)
 
 
     def create_xls_file(self):
@@ -150,15 +163,17 @@ class MobileParser:
         dealers_data = []
         for dealer in dealers:
             info = dealer.select('.dealer')
-            href = info[0].select_one('a')['href']
-            if 'http://home.mobile.de/' not in href:
+            self.href = info[0].select_one('a')['href']
+            if self.href in self.parsed_hrefs:
+                continue
+            if 'http://home.mobile.de/' not in self.href:
                 continue
             self.ort = None
             self.ort = info[2].text.split(' ', maxsplit=1)[1]
             self.qualifications = []
             if len(info) > 3:
                 self.qualifications = info[3].text.replace('\n', '').split(',')
-            self.get_dealer_contact(href)
+            self.get_dealer_contact(self.href)
 
     def get_dealer_contact(self, url):
         if 'http://home.mobile.de/' not in url:
@@ -184,6 +199,7 @@ class MobileParser:
                 print(ex)
         resp = r.json()
         self.firma = resp['contactPage']['contactData']['companyName']['value']
+        print(self.firma)
         self.street = resp['contactPage']['contactData']['streetAndHouseNumber']['value']
         self.plz = resp['contactPage']['contactData']['zipcodeAndCity']['value'].split(' ')[0]
         self.ort = resp['contactPage']['contactData']['zipcodeAndCity']['value'].split(' ', maxsplit=1)[1]
@@ -237,7 +253,7 @@ class MobileParser:
         self.count_offer = resp['searchMetadata']['totalResults']
         self.automarks = [el['value'] for el in resp['searchReferenceData']['makes'] if el['key']]
         self.save_file()
-        print(self.firma)
+        self.save_href()
         # timer = int(time.time() * 1000)
         # url_about = f'https://home.mobile.de/home/about.html?noHeader=true&customerId={id}&json=false&_={timer}'
         # r = requests.get(url_about, headers=headers)
@@ -256,6 +272,17 @@ class MobileParser:
         #             self.site = el
         #         self.host = self.site.replace('www.','')
         # print(self.site)
+
+    def save_href(self):
+        try:
+            with open('save_file', 'r') as save_file:
+                hrefs = save_file.read()
+        except FileNotFoundError:
+            hrefs = '[]'
+        hrefs = eval(hrefs)
+        hrefs.append(self.href)
+        with open('save_file', 'w') as save_file:
+            save_file.write(str(hrefs))
 
 
     def get_dialers(self, url):
