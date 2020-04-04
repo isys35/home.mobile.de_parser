@@ -309,6 +309,8 @@ class MobileParser:
             regions_hrefs = '[]'
         hrefs = eval(regions_hrefs)
         hrefs.append(save_region)
+        with open('save_file_region', 'w') as save_file:
+            save_file.write(str(hrefs))
 
     def parsing(self):
         regions = self.get_regions()
@@ -330,7 +332,6 @@ class MobileParser:
 
 
 
-
 if __name__ == '__main__':
     parser = MobileParser()
     try:
@@ -339,3 +340,4 @@ if __name__ == '__main__':
             break
     except Exception as ex:
         print(ex)
+    print('Завершено')
