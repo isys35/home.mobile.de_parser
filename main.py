@@ -53,6 +53,7 @@ class MobileParser:
         if self.file_name not in os.listdir('.'):
             self.create_xls_file()
         self.parsed_hrefs = self.load_hrefs()
+        self.parsed_regions = self.load_regions()
 
     def load_hrefs(self):
         try:
@@ -300,11 +301,32 @@ class MobileParser:
             soup = BS(r.text, 'lxml')
             self.get_dealers_info(soup)
 
+    def save_region(self, save_region):
+        try:
+            with open('save_file_region', 'r') as save_file:
+                regions_hrefs = save_file.read()
+        except FileNotFoundError:
+            regions_hrefs = '[]'
+        hrefs = eval(regions_hrefs)
+        hrefs.append(save_region)
+
     def parsing(self):
         regions = self.get_regions()
         for region in regions:
+            if region['href'] in self.parsed_regions:
+                continue
             self.bundesland = region['title']
             self.get_dialers(region['href'])
+            self.save_region(region['href'])
+
+    def load_regions(self):
+        try:
+            with open('save_file_region', 'r') as save_file:
+                regions_hrefs = save_file.read()
+        except FileNotFoundError:
+            regions_hrefs = '[]'
+        print(regions_hrefs)
+        return eval(regions_hrefs)
 
 
 
@@ -314,5 +336,6 @@ if __name__ == '__main__':
     try:
         while True:
             parser.parsing()
+            break
     except Exception as ex:
         print(ex)
