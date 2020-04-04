@@ -165,6 +165,7 @@ class MobileParser:
         for dealer in dealers:
             info = dealer.select('.dealer')
             self.href = info[0].select_one('a')['href']
+            print(self.href)
             if self.href in self.parsed_hrefs:
                 continue
             if 'http://home.mobile.de/' not in self.href:
@@ -296,7 +297,7 @@ class MobileParser:
         soup = BS(r.text, 'lxml')
         pages = self.get_pages(soup)
         self.get_dealers_info(soup)
-        for p in range(1,pages):
+        for p in range(1, pages):
             r = requests.get(url.replace('0', str(p)), headers=self.HEADERS)
             soup = BS(r.text, 'lxml')
             self.get_dealers_info(soup)
