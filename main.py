@@ -139,13 +139,24 @@ class MobileParser:
                 print('[ОШИБКА] Закройте Excel файл')
                 time.sleep(1)
 
-    def get_regions(self):
+    def request(self, url, headers):
         while True:
             try:
-                r = requests.get(self.URL_REGION, headers=self.HEADERS)
+                r = requests.get(url, headers=headers)
                 break
             except Exception as ex:
                 print(ex)
+        return r
+
+    def get_regions(self):
+        r = self.request(self.URL_REGION, self.HEADERS)
+        while 'Ups, bist Du ein Mensch? / Are you a human?' in r.text:
+            print(r.status_code)
+            print('пройдите рекапчу и введите cookie')
+            cookie = input('==>')
+            headers = self.HEADERS
+            headers['Cookie'] = cookie
+            r = self.request(self.URL_REGION, headers)
         soup = BS(r.text, 'lxml')
         regions = soup.select('area')
         regions_data = []
@@ -330,7 +341,6 @@ class MobileParser:
             regions_hrefs = '[]'
         print(regions_hrefs)
         return eval(regions_hrefs)
-
 
 
 if __name__ == '__main__':
