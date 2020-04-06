@@ -54,10 +54,20 @@ class MobileParser:
             self.create_xls_file()
         self.parsed_hrefs = self.load_hrefs()
         self.parsed_regions = self.load_regions()
+        self.parsed_pages = self.load_pages()
 
     def load_hrefs(self):
         try:
             with open('save_file', 'r') as save_file:
+                hrefs = save_file.read()
+        except FileNotFoundError:
+            hrefs = '[]'
+        print(hrefs)
+        return eval(hrefs)
+
+    def load_pages(self):
+        try:
+            with open('save_file_page', 'r') as save_file:
                 hrefs = save_file.read()
         except FileNotFoundError:
             hrefs = '[]'
@@ -291,16 +301,31 @@ class MobileParser:
         with open('save_file', 'w') as save_file:
             save_file.write(str(hrefs))
 
-
     def get_dialers(self, url):
         r = self.request(url, self.HEADERS)
         soup = BS(r.text, 'lxml')
         pages = self.get_pages(soup)
         self.get_dealers_info(soup)
         for p in range(1, pages):
-            r = self.request(url.replace('0', str(p)), self.HEADERS)
+            page_url = url.replace('0', str(p))
+            if page_url in self.parsed_pages:
+                continue
+            r = self.request(page_url, self.HEADERS)
             soup = BS(r.text, 'lxml')
             self.get_dealers_info(soup)
+            self.save_page_catalog(page_url)
+
+    def save_page_catalog(self, page):
+        try:
+            with open('save_file_page', 'r') as save_file:
+                pages_str = save_file.read()
+        except FileNotFoundError:
+            pages_str = '[]'
+        pages = eval(pages_str)
+        pages.append(page)
+        with open('save_file_page', 'w') as save_file:
+            save_file.write(str(pages))
+
 
     def save_region(self, save_region):
         try:
