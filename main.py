@@ -317,7 +317,7 @@ class MobileParser:
         regions = self.get_regions()
         for region in regions:
             if region['href'] in self.parsed_regions:
-                continue
+                 continue
             self.bundesland = region['title']
             self.get_dialers(region['href'])
             self.save_region(region['href'])
