@@ -5,6 +5,7 @@ import xlwt
 import xlrd
 import os
 import proxy as pr
+import traceback
 
 
 class MobileParser:
@@ -202,6 +203,7 @@ class MobileParser:
                 self.qualifications = info[3].text.replace('\n', '').split(',')
             self.get_dealer_contact(self.href)
 
+
     def get_dealer_contact(self, url):
         if 'http://home.mobile.de/' not in url:
             return
@@ -215,10 +217,15 @@ class MobileParser:
             try:
                 timer = int(time.time() * 1000)
                 contact_url = f'https://home.mobile.de/home/contact.html?customerId={id}&adId=0&json=true&_={timer}'
-                r = self.request(contact_url, self.JSON_HEADERS)
-                break
+                r = requests.get(contact_url, headers=self.JSON_HEADERS, proxies=self.proxy)
+                if 'Ups, bist Du ein Mensch? / Are you a human?' in r.text:
+                    print('Ups, bist Du ein Mensch? / Are you a human?')
+                    self.proxy = pr.get_proxy()
+                else:
+                    break
             except Exception as ex:
                 print(ex)
+                self.proxy = pr.get_proxy()
         resp = r.json()
         self.firma = resp['contactPage']['contactData']['companyName']['value']
         print(self.firma)
@@ -247,10 +254,15 @@ class MobileParser:
             try:
                 timer = int(time.time() * 1000)
                 imprint_url = f'https://home.mobile.de/home/imprint.html?noHeader=true&customerId={id}&json=false&_={timer}'
-                r = self.request(imprint_url, headers)
-                break
+                r = requests.get(imprint_url, headers=self.JSON_HEADERS, proxies=self.proxy)
+                if 'Ups, bist Du ein Mensch? / Are you a human?' in r.text:
+                    print('Ups, bist Du ein Mensch? / Are you a human?')
+                    self.proxy = pr.get_proxy()
+                else:
+                    break
             except Exception as ex:
                 print(ex)
+                self.proxy = pr.get_proxy()
         soup = BS(r.text, 'lxml')
         splited_data = soup.text.split('\n')
         #print(splited_data)
@@ -267,10 +279,15 @@ class MobileParser:
             try:
                 timer = int(time.time() * 1000)
                 ses_url = f'https://home.mobile.de/home/ses.html?customerId={id}&json=true&_={timer}'
-                r = self.request(ses_url, headers)
-                break
+                r = requests.get(ses_url, headers=self.JSON_HEADERS, proxies=self.proxy)
+                if 'Ups, bist Du ein Mensch? / Are you a human?' in r.text:
+                    print('Ups, bist Du ein Mensch? / Are you a human?')
+                    self.proxy = pr.get_proxy()
+                else:
+                    break
             except Exception as ex:
                 print(ex)
+                self.proxy = pr.get_proxy()
         resp = r.json()
         self.count_offer = resp['searchMetadata']['totalResults']
         self.automarks = [el['value'] for el in resp['searchReferenceData']['makes'] if el['key']]
@@ -370,4 +387,5 @@ if __name__ == '__main__':
             break
     except Exception as ex:
         print(ex)
+        print(traceback.format_exc())
     print('Завершено')
