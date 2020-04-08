@@ -4,6 +4,7 @@ import time
 import xlwt
 import xlrd
 import os
+import proxy as pr
 
 
 class MobileParser:
@@ -50,6 +51,7 @@ class MobileParser:
         self.qualifications = None
         self.href = None
         self.file_name = 'data.xls'
+        self.proxy = pr.get_proxy()
         if self.file_name not in os.listdir('.'):
             self.create_xls_file()
         self.parsed_hrefs = self.load_hrefs()
@@ -152,16 +154,19 @@ class MobileParser:
     def request(self, url, headers):
         while True:
             try:
-                r = requests.get(url, headers=headers)
+                r = requests.get(url, headers=headers, proxies=self.proxy)
                 if 'Ups, bist Du ein Mensch? / Are you a human?' in r.text:
-                    print(r.status_code)
-                    print('пройдите рекапчу и введите cookie')
-                    cookie = input('==>')
-                    headers['Cookie'] = cookie
+                    # print(r.status_code)
+                    # print('пройдите рекапчу и введите cookie')
+                    # cookie = input('==>')
+                    # headers['Cookie'] = cookie
+                    print('Ups, bist Du ein Mensch? / Are you a human?')
+                    self.proxy = pr.get_proxy()
                 else:
                     break
             except Exception as ex:
                 print(ex)
+                self.proxy = pr.get_proxy()
         return r
 
     def get_regions(self):
