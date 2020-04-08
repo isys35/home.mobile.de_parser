@@ -6,6 +6,8 @@ import xlrd
 import os
 import proxy as pr
 import traceback
+from analys import brenchmark
+
 
 
 class MobileParser:
@@ -114,6 +116,7 @@ class MobileParser:
                 print('[ОШИБКА] Закройте Excel файл')
                 time.sleep(1)
 
+    @brenchmark
     def save_file(self):
         rb = xlrd.open_workbook(self.file_name)
         wb = xlwt.Workbook()

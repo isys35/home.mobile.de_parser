@@ -4,6 +4,7 @@ import time
 from bs4 import BeautifulSoup as BS
 import traceback
 from json.decoder import JSONDecodeError
+from analys import brenchmark
 
 class Parser(MobileParser):
     def __init__(self):
@@ -44,6 +45,8 @@ class Parser(MobileParser):
                 r = requests.get(contact_url, headers=self.JSON_HEADERS)
                 if 'Ups, bist Du ein Mensch? / Are you a human?' in r.text:
                     print('Ups, bist Du ein Mensch? / Are you a human?')
+                    cookie = input('COOKIE: ')
+                    self.JSON_HEADERS['Cookie'] = cookie
                 else:
                     break
             except Exception as ex:
@@ -79,6 +82,9 @@ class Parser(MobileParser):
                 r = requests.get(imprint_url, headers=self.JSON_HEADERS)
                 if 'Ups, bist Du ein Mensch? / Are you a human?' in r.text:
                     print('Ups, bist Du ein Mensch? / Are you a human?')
+                    print('Пройдите рекапчу')
+                    cookie = input('COOKIE: ')
+                    self.JSON_HEADERS['Cookie'] = cookie
                 else:
                     break
             except Exception as ex:
@@ -102,6 +108,9 @@ class Parser(MobileParser):
                 r = requests.get(ses_url, headers=self.JSON_HEADERS)
                 if 'Ups, bist Du ein Mensch? / Are you a human?' in r.text:
                     print('Ups, bist Du ein Mensch? / Are you a human?')
+                    print('Пройдите рекапчу')
+                    cookie = input('COOKIE: ')
+                    self.JSON_HEADERS['Cookie'] = cookie
                 else:
                     break
             except Exception as ex:
