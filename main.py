@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import requests
 from bs4 import BeautifulSoup as BS
 import time
@@ -7,7 +8,6 @@ import os
 import proxy as pr
 import traceback
 from analys import brenchmark
-
 
 
 class MobileParser:

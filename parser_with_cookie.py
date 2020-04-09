@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup as BS
 import traceback
 from json.decoder import JSONDecodeError
 from analys import brenchmark
+import csv
 
 class Parser(MobileParser):
     def __init__(self):
@@ -125,8 +126,44 @@ class Parser(MobileParser):
         self.save_href()
 
 
+class ParserCsv(Parser):
+    def __init__(self):
+        super().__init__()
+
+    @brenchmark
+    def save_file(self):
+        with open('data.csv', "a", newline="", encoding='utf8') as file:
+            data = [self.qualle,
+                    self.firma,
+                    self.street,
+                    self.plz,
+                    self.ort,
+                    self.bundesland,
+                    self.land,
+                    None,
+                    None,
+                    None,
+                    self.fax,
+                    self.email,
+                    self.site,
+                    self.host,
+                    str(self.automarks),
+                    self.count_offer,
+                    self.dealer_status,
+                    None,
+                    None,
+                    None,
+                    None]
+            for i in range(len(self.phone)):
+                data[7 + i] = self.phone[i]
+            for i in range(len(self.qualifications[:4])):
+                data[17 + i] = self.qualifications[i]
+            writer = csv.writer(file, delimiter=';')
+            writer.writerow(data)
+
+
 if __name__ == '__main__':
-    parser = Parser()
+    parser = ParserCsv()
     try:
         while True:
             parser.parsing()
