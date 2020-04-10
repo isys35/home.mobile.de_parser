@@ -79,7 +79,6 @@ class MobileParser:
         print(hrefs)
         return eval(hrefs)
 
-
     def create_xls_file(self):
         wb = xlwt.Workbook()
         ws = wb.add_sheet('sheet')
@@ -348,7 +347,6 @@ class MobileParser:
         pages.append(page)
         with open('save_file_page', 'w') as save_file:
             save_file.write(str(pages))
-
 
     def save_region(self, save_region):
         try:
