@@ -221,13 +221,16 @@ class MobileParser:
             self.dealer_status = None
         imprint_soup = BeautifulSoup(data[1], 'lxml')
         splited_data = imprint_soup.text.split('\n')
+        self.email = None
         for el in splited_data:
             if '@' in el:
                 splited_el = el.split(' ')
                 if len(splited_el) > 1:
-                    self.email = splited_el[1]
+                    for el2 in splited_el:
+                        if '@' in el2:
+                            self.email = el2.replace('eMail:', '').replace('Email.', '')
                 else:
-                    self.email = el
+                    self.email = el.replace('eMail:', '').replace('Email.', '')
                 break
         try:
             ses_json = json.loads(data[2])
@@ -271,4 +274,4 @@ class MobileParser:
 
 if __name__ == '__main__':
     parser = MobileParser()
-    parser.parsing(begin=False)
+    parser.parsing(begin=True)

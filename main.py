@@ -271,9 +271,11 @@ class MobileParser:
             if '@' in el:
                 splited_el = el.split(' ')
                 if len(splited_el) > 1:
-                    self.email = splited_el[1]
+                    for el2 in splited_el:
+                        if '@' in el2:
+                            self.email = el2.replace('eMail:', '').replace('Email.', '')
                 else:
-                    self.email = el
+                    self.email = el.replace('eMail:', '').replace('Email.', '')
                 break
         while True:
             try:
