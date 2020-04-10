@@ -190,7 +190,6 @@ class MobileParser:
 
     def get_dealers_info(self, soup):
         dealers = soup.select('.dealerItem')
-        dealers_data = []
         for dealer in dealers:
             info = dealer.select('.dealer')
             self.href = info[0].select_one('a')['href']

@@ -27,6 +27,7 @@ async def req(urls, headers):
         return data
 
 
+
 class Parser(MobileParser):
     def __init__(self):
         super().__init__()
@@ -50,7 +51,6 @@ class Parser(MobileParser):
                 print(ex)
         return r
 
-    @brenchmark
     def dealer_id(self,url):
         if 'http://home.mobile.de/' not in url:
             return
@@ -194,7 +194,6 @@ class ParserAsync(ParserCsv):
     def __init__(self):
         super().__init__()
 
-    @brenchmark
     def get_dealer_contact(self, url):
         id = self.dealer_id(url)
         if not id:
