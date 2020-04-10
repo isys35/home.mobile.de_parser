@@ -7,6 +7,7 @@ from json.decoder import JSONDecodeError
 from analys import brenchmark
 import csv
 
+
 class Parser(MobileParser):
     def __init__(self):
         super().__init__()
@@ -54,7 +55,8 @@ class Parser(MobileParser):
                 print(ex)
         resp = r.json()
         self.firma = resp['contactPage']['contactData']['companyName']['value']
-        print(self.firma)
+        if 'value' not in resp['contactPage']['contactData']['streetAndHouseNumber']:
+            return
         self.street = resp['contactPage']['contactData']['streetAndHouseNumber']['value']
         self.plz = resp['contactPage']['contactData']['zipcodeAndCity']['value'].split(' ')[0]
         self.ort = resp['contactPage']['contactData']['zipcodeAndCity']['value'].split(' ', maxsplit=1)[1]
@@ -164,11 +166,11 @@ class ParserCsv(Parser):
 
 if __name__ == '__main__':
     parser = ParserCsv()
-    try:
-        while True:
+    while True:
+        try:
             parser.parsing()
             break
-    except Exception as ex:
-        print(ex)
-        print(traceback.format_exc())
+        except Exception as ex:
+            print(ex)
+            print(traceback.format_exc())
     print('Завершено')
