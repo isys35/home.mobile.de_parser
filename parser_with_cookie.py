@@ -31,7 +31,7 @@ class Parser(MobileParser):
                 print(ex)
         return r
 
-    def get_dealer_contact(self, url):
+    def dealer_id(self,url):
         if 'http://home.mobile.de/' not in url:
             return
         r = self.request(url, self.HEADERS)
@@ -39,6 +39,12 @@ class Parser(MobileParser):
         if not soup.select_one('.de'):
             return
         id = soup.select_one('.de').select('var')[0].text
+        return id
+
+    def get_dealer_contact(self, url):
+        id = self.dealer_id(url)
+        if not id:
+            return
         self.JSON_HEADERS['Referer'] = url
         while True:
             try:

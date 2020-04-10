@@ -206,7 +206,6 @@ class MobileParser:
                 self.qualifications = info[3].text.replace('\n', '').split(',')
             self.get_dealer_contact(self.href)
 
-
     def get_dealer_contact(self, url):
         if 'http://home.mobile.de/' not in url:
             return
