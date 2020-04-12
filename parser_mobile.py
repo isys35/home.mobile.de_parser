@@ -187,12 +187,17 @@ class MobileParser:
                 imprint_url = f'https://home.mobile.de/home/imprint.html?noHeader=true&customerId={index}&json=false&_={timer} '
                 ses_url = f'https://home.mobile.de/home/ses.html?customerId={index}&json=true&_={timer}'
                 data = asyncio.run(req([contact_url, imprint_url, ses_url], [self.JSON_HEADERS for _ in range(3)]))
+                check_robot = False
                 for el in data:
-                    if 'Ups, bist Du ein Mensch? / Are you a human?' in el:
+                    print(el)
+                    if 'Ups, bist Du ein Mensch?' in str(el):
                         print('Ups, bist Du ein Mensch? / Are you a human?')
                         cookie = input('COOKIE: ')
                         self.JSON_HEADERS['Cookie'] = cookie
-                break
+                        check_robot = True
+                        break
+                if not check_robot:
+                    break
             except Exception as ex:
                 print(ex)
         contact_json = json.loads(data[0])
